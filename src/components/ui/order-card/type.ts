@@ -1,10 +1,9 @@
-import { Location } from 'react-router-dom';
 import { TIngredient } from '@utils-types';
 
 export type OrderCardUIProps = {
   orderInfo: TOrderInfo;
   maxIngredients: number;
-  locationState: { background: Location };
+  locationState: { background: string };
 };
 
 type TOrderInfo = {

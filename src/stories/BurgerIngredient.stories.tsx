@@ -1,6 +1,5 @@
-import React from 'react';
-import { BurgerIngredientUI } from '@ui';
 import type { Meta, StoryObj } from '@storybook/react';
+import { BurgerIngredientUI } from '@ui';
 
 const meta = {
   title: 'Example/BurgerIngredient',
@@ -40,13 +39,7 @@ export const DefaultIngredient: Story = {
     },
     count: 2,
     locationState: {
-      background: {
-        hash: '',
-        key: 'eitkep27',
-        pathname: '/',
-        search: '',
-        state: null
-      }
+      background: '/'
     },
     handleAdd: () => {}
   }

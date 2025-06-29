@@ -1,5 +1,5 @@
-import { OrderCardUI } from '@ui';
 import type { Meta, StoryObj } from '@storybook/react';
+import { OrderCardUI } from '@ui';
 
 const meta = {
   title: 'Example/OrderCard',
@@ -74,13 +74,7 @@ export const DefaultOrderCard: Story = {
     },
     maxIngredients: 5,
     locationState: {
-      background: {
-        hash: '',
-        key: 'eitkep27',
-        pathname: '/',
-        search: '',
-        state: null
-      }
+      background: '/'
     }
   }
 };

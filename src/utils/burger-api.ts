@@ -1,10 +1,21 @@
-import { setCookie, getCookie } from './cookie';
-import { TIngredient, TOrder, TOrdersData, TUser } from './types';
+import { getCookie, setCookie } from './cookie';
+import { IngredientDTO, TIngredient, TOrder, TUser } from './types';
 
-const URL = process.env.BURGER_API_URL;
+const URL = process.env.REACT_APP_API_URL;
+if (!URL) {
+  console.error('BURGER_API_URL не установлен в переменных окружения');
+  throw new Error('API URL не настроен');
+}
 
-const checkResponse = <T>(res: Response): Promise<T> =>
-  res.ok ? res.json() : res.json().then((err) => Promise.reject(err));
+const checkResponse = <T>(res: Response): Promise<T> => {
+  if (!res.ok) {
+    if (res.type === 'opaque' || res.status === 0) {
+      throw new Error('CORS ошибка: нет доступа к API');
+    }
+    return res.json().then((err) => Promise.reject(err));
+  }
+  return res.json();
+};
 
 type TServerResponse<T> = {
   success: boolean;
@@ -22,7 +33,7 @@ export const refreshToken = (): Promise<TRefreshResponse> =>
       'Content-Type': 'application/json;charset=utf-8'
     },
     body: JSON.stringify({
-      token: localStorage.getItem('refreshToken')
+      token: getCookie('refreshToken')
     })
   })
     .then((res) => checkResponse<TRefreshResponse>(res))
@@ -30,7 +41,6 @@ export const refreshToken = (): Promise<TRefreshResponse> =>
       if (!refreshData.success) {
         return Promise.reject(refreshData);
       }
-      localStorage.setItem('refreshToken', refreshData.refreshToken);
       setCookie('accessToken', refreshData.accessToken);
       return refreshData;
     });
@@ -62,6 +72,7 @@ type TIngredientsResponse = TServerResponse<{
 }>;
 
 type TFeedsResponse = TServerResponse<{
+  success: boolean;
   orders: TOrder[];
   total: number;
   totalToday: number;
@@ -71,13 +82,32 @@ type TOrdersResponse = TServerResponse<{
   data: TOrder[];
 }>;
 
-export const getIngredientsApi = () =>
-  fetch(`${URL}/ingredients`)
-    .then((res) => checkResponse<TIngredientsResponse>(res))
-    .then((data) => {
-      if (data?.success) return data.data;
-      return Promise.reject(data);
-    });
+// burger-api.ts
+export const getIngredientsApi = async (): Promise<{
+  success: boolean;
+  data: IngredientDTO[];
+}> => {
+  try {
+    const response = await fetch(`${URL}/ingredients`);
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(`API вернул не JSON: ${text.substring(0, 50)}...`);
+    }
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Ошибка при получении ингредиентов');
+    }
+
+    return data;
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : 'Неизвестная ошибка при загрузке ингредиентов';
+    throw new Error(errorMessage);
+  }
+};
 
 export const getFeedsApi = () =>
   fetch(`${URL}/orders/all`)
@@ -230,6 +260,6 @@ export const logoutApi = () =>
       'Content-Type': 'application/json;charset=utf-8'
     },
     body: JSON.stringify({
-      token: localStorage.getItem('refreshToken')
+      token: getCookie('refreshToken')
     })
   }).then((res) => checkResponse<TServerResponse<{}>>(res));

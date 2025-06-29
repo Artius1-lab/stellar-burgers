@@ -1,4 +1,9 @@
 import { FC } from 'react';
-import { AppHeaderUI } from '@ui';
+import { useLocation } from 'react-router-dom';
+import { AppHeaderUI } from '../../components/ui/app-header/app-header';
 
-export const AppHeader: FC = () => <AppHeaderUI userName='' />;
+export const AppHeader: FC = () => {
+  const location = useLocation();
+
+  return <AppHeaderUI pathname={location.pathname} />;
+};

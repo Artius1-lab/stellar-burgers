@@ -1,40 +1,55 @@
-import { FC, SyntheticEvent, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-import { resetPasswordApi } from '@api';
 import { ResetPasswordUI } from '@ui-pages';
+import { FC, FormEvent, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from '../../hooks/useForm';
+import { resetPassword } from '../../services/actions/authActions';
+import { RootState, useDispatch, useSelector } from '../../services/store';
+import { ROUTES } from '../../utils/routes.enum';
 
 export const ResetPassword: FC = () => {
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
-  const [token, setToken] = useState('');
-  const [error, setError] = useState<Error | null>(null);
+  const { token } = useParams<{ token: string }>();
+  const [form, handleChange] = useForm({ password: '', token: '' });
+  const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
-  const handleSubmit = (e: SyntheticEvent) => {
+  const { loading, error: reduxError } = useSelector(
+    (state: RootState) => state.auth
+  );
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-    resetPasswordApi({ password, token })
-      .then(() => {
-        localStorage.removeItem('resetPassword');
-        navigate('/login');
-      })
-      .catch((err) => setError(err));
+
+    if (!form.token) {
+      setError('Токен не найден в URL');
+      return;
+    }
+
+    try {
+      await dispatch(
+        resetPassword({ password: form.password, token: form.token })
+      ).unwrap();
+      localStorage.removeItem('resetPassword');
+      navigate(ROUTES.LOGIN);
+    } catch (err: any) {
+      setError(err?.message || 'Неверный код подтверждения');
+    }
   };
 
   useEffect(() => {
     if (!localStorage.getItem('resetPassword')) {
-      navigate('/forgot-password', { replace: true });
+      navigate(ROUTES.FORGOT_PASSWORD, { replace: true });
     }
   }, [navigate]);
 
   return (
     <ResetPasswordUI
-      errorText={error?.message}
-      password={password}
-      token={token}
-      setPassword={setPassword}
-      setToken={setToken}
+      password={form.password}
+      token={form.token}
+      handleChange={handleChange}
       handleSubmit={handleSubmit}
+      errorText={error || reduxError || ''}
     />
   );
 };
