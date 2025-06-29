@@ -1,5 +1,4 @@
 import { FC } from 'react';
-
 import commonStyles from '../common.module.css';
 import styles from './profile.module.css';
 
@@ -15,7 +14,7 @@ export const ProfileUI: FC<ProfileUIProps> = ({
   handleCancel,
   handleInputChange
 }) => (
-  <main className={`${commonStyles.container}`}>
+  <main className={commonStyles.container}>
     <div className={`mt-30 mr-15 ${styles.menu}`}>
       <ProfileMenu />
     </div>
@@ -25,49 +24,53 @@ export const ProfileUI: FC<ProfileUIProps> = ({
     >
       <div className='pb-6'>
         <Input
-          type={'text'}
-          placeholder={'Имя'}
-          onChange={handleInputChange}
+          type='text'
+          placeholder='Имя'
+          name='name'
           value={formValue.name}
-          name={'name'}
+          onChange={handleInputChange}
+          autoComplete='name'
           error={false}
-          errorText={''}
-          size={'default'}
-          icon={'EditIcon'}
-          onPointerEnterCapture={null}
-          onPointerLeaveCapture={null}
+          errorText=''
+          size='default'
+          icon='EditIcon'
+          onPointerEnterCapture={() => {}}
+          onPointerLeaveCapture={() => {}}
         />
       </div>
       <div className='pb-6'>
         <Input
-          type={'email'}
-          placeholder={'E-mail'}
-          onChange={handleInputChange}
+          type='email'
+          placeholder='E-mail'
+          name='email'
           value={formValue.email}
-          name={'email'}
+          onChange={handleInputChange}
+          autoComplete='email'
           error={false}
-          errorText={''}
-          size={'default'}
-          icon={'EditIcon'}
-          onPointerEnterCapture={null}
-          onPointerLeaveCapture={null}
+          errorText=''
+          size='default'
+          icon='EditIcon'
+          onPointerEnterCapture={() => {}}
+          onPointerLeaveCapture={() => {}}
         />
       </div>
       <div className='pb-6'>
         <Input
-          type={'password'}
-          placeholder={'Пароль'}
-          onChange={handleInputChange}
+          type='password'
+          placeholder='Пароль'
+          name='password'
           value={formValue.password}
-          name={'password'}
+          onChange={handleInputChange}
+          autoComplete='new-password'
           error={false}
-          errorText={''}
-          size={'default'}
-          icon={'EditIcon'}
-          onPointerEnterCapture={null}
-          onPointerLeaveCapture={null}
+          errorText=''
+          size='default'
+          icon='EditIcon'
+          onPointerEnterCapture={() => {}}
+          onPointerLeaveCapture={() => {}}
         />
       </div>
+
       {isFormChanged && (
         <div className={styles.button}>
           <Button
@@ -83,6 +86,7 @@ export const ProfileUI: FC<ProfileUIProps> = ({
           </Button>
         </div>
       )}
+
       {updateUserError && (
         <p className={`${commonStyles.error} pt-5 text text_type_main-default`}>
           {updateUserError}

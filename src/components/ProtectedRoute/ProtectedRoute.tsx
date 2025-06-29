@@ -1,5 +1,6 @@
 import { FC, ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
+import { RootState, useSelector } from '../../services/store';
 
 interface ProtectedRouteProps {
   isAuth: boolean;
@@ -11,4 +12,15 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({
   isAuth,
   redirectTo,
   children
-}) => (isAuth ? <>{children}</> : <Navigate to={redirectTo} replace />);
+}) => {
+  const location = useLocation();
+  const authChecked = useSelector((state: RootState) => state.auth.authChecked);
+
+  if (!authChecked) return null; // ⏳ Пока не проверили авторизацию — ничего не показываем
+
+  return isAuth ? (
+    <>{children}</>
+  ) : (
+    <Navigate to={redirectTo} replace state={{ from: location }} />
+  );
+};

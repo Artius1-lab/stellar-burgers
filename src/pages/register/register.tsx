@@ -1,30 +1,22 @@
 import { RegisterUI } from '@ui-pages';
-import { FC, SyntheticEvent, useState } from 'react';
+import { FC, FormEvent, useState } from 'react';
+import { useForm } from '../../hooks/useForm';
 import { registerUser } from '../../services/actions/authActions';
 import { setAuth, setTokens, setUser } from '../../services/slices/authSlice';
 import { useDispatch, useSelector } from '../../services/store';
 import { setCookie } from '../../utils/cookie';
 
 export const Register: FC = () => {
-  const [userName, setUserName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, handleChange] = useForm({ name: '', email: '', password: '' });
   const [errorText, setErrorText] = useState('');
   const dispatch = useDispatch();
-
   const { loading, error } = useSelector((state) => state.auth);
 
-  const handleSubmit = async (e: SyntheticEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const data = {
-      email,
-      name: userName,
-      password
-    };
-
     try {
-      const response = await dispatch(registerUser(data)).unwrap();
+      const response = await dispatch(registerUser(form)).unwrap();
 
       if (response?.success) {
         const { accessToken, refreshToken } = response;
@@ -40,7 +32,7 @@ export const Register: FC = () => {
 
         setErrorText('');
       }
-    } catch (error) {
+    } catch {
       setErrorText('Ошибка при регистрации. Попробуйте снова.');
     }
   };
@@ -48,13 +40,11 @@ export const Register: FC = () => {
   return (
     <RegisterUI
       errorText={errorText}
-      email={email}
-      userName={userName}
-      password={password}
-      setEmail={setEmail}
-      setPassword={setPassword}
-      setUserName={setUserName}
+      email={form.email}
+      userName={form.name}
+      password={form.password}
       handleSubmit={handleSubmit}
+      handleChange={handleChange}
     />
   );
 };

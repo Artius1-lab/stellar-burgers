@@ -8,15 +8,14 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../../utils/routes.enum';
 import styles from '../common.module.css';
 import { RegisterUIProps } from './type';
+
 export const RegisterUI: FC<RegisterUIProps> = ({
   errorText,
   email,
-  setEmail,
-  handleSubmit,
-  password,
-  setPassword,
   userName,
-  setUserName
+  password,
+  handleSubmit,
+  handleChange
 }) => (
   <main className={styles.container}>
     <div className={`pt-6 ${styles.wrapCenter}`}>
@@ -26,53 +25,53 @@ export const RegisterUI: FC<RegisterUIProps> = ({
         name='register'
         onSubmit={handleSubmit}
       >
-        <>
-          <div className='pb-6'>
-            <Input
-              type='text'
-              placeholder='Имя'
-              onChange={(e) => setUserName(e.target.value)}
-              value={userName}
-              name='name'
-              error={false}
-              errorText=''
-              size='default'
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-            />
-          </div>
-          <div className='pb-6'>
-            <Input
-              type='email'
-              placeholder='E-mail'
-              onChange={(e) => setEmail(e.target.value)}
-              value={email}
-              name={'email'}
-              error={false}
-              errorText=''
-              size={'default'}
-              onPointerEnterCapture={undefined}
-              onPointerLeaveCapture={undefined}
-            />
-          </div>
-          <div className='pb-6'>
-            <PasswordInput
-              onChange={(e) => setPassword(e.target.value)}
-              value={password}
-              name='password'
-            />
-          </div>
-          <div className={`pb-6 ${styles.button}`}>
-            <Button type='primary' size='medium' htmlType='submit'>
-              Зарегистрироваться
-            </Button>
-          </div>
-          {errorText && (
-            <p className={`${styles.error} text text_type_main-default pb-6`}>
-              {errorText}
-            </p>
-          )}
-        </>
+        <div className='pb-6'>
+          <Input
+            type='text'
+            placeholder='Имя'
+            name='name'
+            value={userName}
+            onChange={handleChange}
+            autoComplete='given-name'
+            error={false}
+            errorText=''
+            size='default'
+            onPointerEnterCapture={() => {}}
+            onPointerLeaveCapture={() => {}}
+          />
+        </div>
+        <div className='pb-6'>
+          <Input
+            type='email'
+            placeholder='E-mail'
+            name='email'
+            value={email}
+            onChange={handleChange}
+            autoComplete='email'
+            error={false}
+            errorText=''
+            size='default'
+            onPointerEnterCapture={() => {}}
+            onPointerLeaveCapture={() => {}}
+          />
+        </div>
+        <div className='pb-6'>
+          <PasswordInput
+            name='password'
+            value={password}
+            onChange={handleChange}
+          />
+        </div>
+        <div className={`pb-6 ${styles.button}`}>
+          <Button type='primary' size='medium' htmlType='submit'>
+            Зарегистрироваться
+          </Button>
+        </div>
+        {errorText && (
+          <p className={`${styles.error} text text_type_main-default pb-6`}>
+            {errorText}
+          </p>
+        )}
       </form>
       <div className={`${styles.question} text text_type_main-default pb-6`}>
         Уже зарегистрированы?

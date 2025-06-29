@@ -1,6 +1,7 @@
 import { LoginUI } from '@ui-pages';
-import { FC, SyntheticEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { FC, FormEvent, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from '../../hooks/useForm';
 import { loginUser } from '../../services/actions/authActions';
 import { setAuth, setTokens, setUser } from '../../services/slices/authSlice';
 import { useDispatch } from '../../services/store';
@@ -8,19 +9,18 @@ import { setCookie } from '../../utils/cookie';
 import { ROUTES } from '../../utils/routes.enum';
 
 export const Login: FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [form, handleChange] = useForm({ email: '', password: '' });
   const [errorText, setErrorText] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || ROUTES.HOME;
 
-  const handleSubmit = async (e: SyntheticEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const data = { email, password };
-
     try {
-      const response = await dispatch(loginUser(data)).unwrap();
+      const response = await dispatch(loginUser(form)).unwrap();
 
       if (response?.success) {
         const { accessToken, refreshToken } = response;
@@ -35,22 +35,20 @@ export const Login: FC = () => {
         setCookie('refreshToken', refreshToken, { expires: 3600 });
 
         setErrorText('');
-
-        navigate(ROUTES.HOME);
+        navigate(from, { replace: true });
       }
-    } catch (error) {
+    } catch {
       setErrorText('Ошибка при входе. Проверьте данные и попробуйте снова.');
     }
   };
 
   return (
     <LoginUI
-      errorText={errorText}
-      email={email}
-      password={password}
-      setEmail={setEmail}
-      setPassword={setPassword}
+      email={form.email}
+      password={form.password}
+      handleChange={handleChange}
       handleSubmit={handleSubmit}
+      errorText={errorText}
     />
   );
 };

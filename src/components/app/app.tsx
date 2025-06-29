@@ -12,8 +12,9 @@ import {
 } from '@pages';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Route, Routes, useNavigate } from 'react-router-dom';
+import { Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import '../../index.css';
+import { fetchUser } from '../../services/actions/authActions';
 import { fetchIngredients } from '../../services/slices/ingredientsSlice';
 import { RootState, useDispatch } from '../../services/store';
 import { ROUTES } from '../../utils/routes.enum';
@@ -22,57 +23,37 @@ import styles from './app.module.css';
 
 const App = () => {
   const navigate = useNavigate();
-  const isAuth = useSelector((state: RootState) =>
-    state.auth.accessToken ? true : false
-  );
-  const [hasFetched, setHasFetched] = useState(false);
   const dispatch = useDispatch();
+  const isAuth = useSelector((state: RootState) => state.auth.isAuth);
   const items = useSelector((state: RootState) => state.ingredients.items);
+  const [hasFetched, setHasFetched] = useState(false);
+
+  const location = useLocation();
+  const state = location.state as { background?: Location };
+  const background = state?.background;
+
+  useEffect(() => {
+    dispatch(fetchUser());
+  }, [dispatch]);
+
   useEffect(() => {
     if (!hasFetched && items.length === 0) {
       dispatch(fetchIngredients());
       setHasFetched(true);
     }
-  }, []);
+  }, [hasFetched, items.length, dispatch]);
 
   return (
     <div className={styles.app}>
       <AppHeader />
-      <Routes>
+
+      {/* Основной роутинг, включая отдельный переход по модальному адресу */}
+      <Routes location={background || location}>
         <Route path={ROUTES.HOME} element={<ConstructorPage />} />
         <Route path={ROUTES.FEED} element={<Feed />} />
         <Route path={ROUTES.NOT_FOUND} element={<NotFound404 />} />
 
-        {/* Доступ к заказам */}
-        <Route
-          path={ROUTES.FEED + '/:number'}
-          element={
-            <Modal title='Детали заказа' onClose={() => navigate(-1)}>
-              <OrderInfo />
-            </Modal>
-          }
-        />
-
-        <Route
-          path={ROUTES.INGREDIENTS}
-          element={
-            <Modal title='Ингредиенты' onClose={() => navigate(-1)}>
-              <IngredientDetails />
-            </Modal>
-          }
-        />
-
         {/* Страницы, доступные только авторизованным пользователям */}
-        <Route
-          path={ROUTES.PROFILE_ORDERS_NUMBER}
-          element={
-            <ProtectedRoute isAuth={isAuth} redirectTo={ROUTES.HOME}>
-              <Modal title='Детали заказа' onClose={() => navigate(-1)}>
-                <OrderInfo />
-              </Modal>
-            </ProtectedRoute>
-          }
-        />
         <Route
           path={ROUTES.PROFILE}
           element={
@@ -86,6 +67,14 @@ const App = () => {
           element={
             <ProtectedRoute isAuth={isAuth} redirectTo={ROUTES.LOGIN}>
               <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path={ROUTES.PROFILE_ORDERS_NUMBER}
+          element={
+            <ProtectedRoute isAuth={isAuth} redirectTo={ROUTES.LOGIN}>
+              <OrderInfo />
             </ProtectedRoute>
           }
         />
@@ -123,7 +112,43 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+
+        {/* Прямой доступ к деталям ингредиента или заказа */}
+        <Route path={ROUTES.INGREDIENTS} element={<IngredientDetails />} />
+        <Route path={ROUTES.FEED + '/:number'} element={<OrderInfo />} />
       </Routes>
+
+      {/* Модальные окна поверх текущей страницы */}
+      {background && (
+        <Routes>
+          <Route
+            path={ROUTES.INGREDIENTS}
+            element={
+              <Modal title='Ингредиенты' onClose={() => navigate(-1)}>
+                <IngredientDetails />
+              </Modal>
+            }
+          />
+          <Route
+            path={ROUTES.FEED + '/:number'}
+            element={
+              <Modal title='Детали заказа' onClose={() => navigate(-1)}>
+                <OrderInfo />
+              </Modal>
+            }
+          />
+          <Route
+            path={ROUTES.PROFILE_ORDERS_NUMBER}
+            element={
+              <ProtectedRoute isAuth={isAuth} redirectTo={ROUTES.HOME}>
+                <Modal title='Детали заказа' onClose={() => navigate(-1)}>
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
     </div>
   );
 };

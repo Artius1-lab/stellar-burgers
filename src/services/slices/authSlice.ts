@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getCookie } from '../../utils/cookie';
 import {
+  fetchUser,
   forgotPassword,
   loginUser,
   logoutUser,
@@ -17,6 +18,7 @@ interface AuthState {
   loading: boolean;
   error: string | null;
   resetPasswordSuccess: boolean;
+  authChecked: boolean;
 }
 
 const initialState: AuthState = {
@@ -26,7 +28,8 @@ const initialState: AuthState = {
   refreshToken: null,
   loading: false,
   error: null,
-  resetPasswordSuccess: false
+  resetPasswordSuccess: false,
+  authChecked: false
 };
 
 const authSlice = createSlice({
@@ -151,6 +154,26 @@ const authSlice = createSlice({
       .addCase(logoutUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+      .addCase(fetchUser.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.isAuth = true;
+        state.user = {
+          name: action.payload.name,
+          email: action.payload.email
+        };
+        state.authChecked = true;
+      })
+      .addCase(fetchUser.rejected, (state) => {
+        state.loading = false;
+        state.isAuth = false;
+        state.user = null;
+        state.accessToken = null;
+        state.refreshToken = null;
+        state.authChecked = true;
       });
   }
 });

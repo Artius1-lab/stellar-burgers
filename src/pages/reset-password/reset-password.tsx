@@ -1,6 +1,7 @@
 import { ResetPasswordUI } from '@ui-pages';
-import { FC, SyntheticEvent, useEffect, useState } from 'react';
+import { FC, FormEvent, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useForm } from '../../hooks/useForm';
 import { resetPassword } from '../../services/actions/authActions';
 import { RootState, useDispatch, useSelector } from '../../services/store';
 import { ROUTES } from '../../utils/routes.enum';
@@ -8,8 +9,7 @@ import { ROUTES } from '../../utils/routes.enum';
 export const ResetPassword: FC = () => {
   const navigate = useNavigate();
   const { token } = useParams<{ token: string }>();
-  const [password, setPassword] = useState('');
-  const [tokenState, setToken] = useState('');
+  const [form, handleChange] = useForm({ password: '', token: '' });
   const [error, setError] = useState<string | null>(null);
   const dispatch = useDispatch();
 
@@ -17,22 +17,24 @@ export const ResetPassword: FC = () => {
     (state: RootState) => state.auth
   );
 
-  const handleSubmit = (e: SyntheticEvent) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
-    if (!tokenState) {
+    if (!form.token) {
       setError('Токен не найден в URL');
       return;
     }
 
-    dispatch(resetPassword({ password, token: tokenState }))
-      .unwrap()
-      .then(() => {
-        localStorage.removeItem('resetPassword');
-        navigate(ROUTES.LOGIN);
-      })
-      .catch((err) => setError(err.message || 'Incorrect reset token'));
+    try {
+      await dispatch(
+        resetPassword({ password: form.password, token: form.token })
+      ).unwrap();
+      localStorage.removeItem('resetPassword');
+      navigate(ROUTES.LOGIN);
+    } catch (err: any) {
+      setError(err?.message || 'Неверный код подтверждения');
+    }
   };
 
   useEffect(() => {
@@ -43,12 +45,11 @@ export const ResetPassword: FC = () => {
 
   return (
     <ResetPasswordUI
-      errorText={error || reduxError || ''}
-      password={password}
-      setPassword={setPassword}
-      token={tokenState}
-      setToken={setToken}
+      password={form.password}
+      token={form.token}
+      handleChange={handleChange}
       handleSubmit={handleSubmit}
+      errorText={error || reduxError || ''}
     />
   );
 };
