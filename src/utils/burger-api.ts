@@ -1,7 +1,8 @@
 import { getCookie, setCookie } from './cookie';
 import { IngredientDTO, TIngredient, TOrder, TUser } from './types';
 
-const URL = process.env.REACT_APP_API_URL;
+const URL = process.env.BURGER_API_URL;
+
 if (!URL) {
   console.error('BURGER_API_URL не установлен в переменных окружения');
   throw new Error('API URL не настроен');
